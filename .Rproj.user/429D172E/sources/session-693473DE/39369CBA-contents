@@ -1,0 +1,43 @@
+rm(list = ls())
+
+# Let's read the dataset
+framingham = read.csv("framingham.csv")
+summary(framingham)
+
+
+# Load the library caTools
+library(caTools)
+
+set.seed(5)
+# split1 = sample.split(framingham,SplitRatio = 0.8) #Random sampling of columns
+split2 = sample.split(framingham$TenYearCHD,SplitRatio = 0.8) #Random sampling of rows
+
+# Split our dataset into train and test
+train = subset(framingham, split2==TRUE)
+test = subset(framingham, split2==FALSE)
+
+# Run the logistic regression
+model1 = glm(TenYearCHD ~ .,data = train,family = binomial)
+summary(model1)
+
+# Create a more accurate model
+model2 = glm(TenYearCHD ~ male+age +cigsPerDay+prevalentHyp+sysBP+glucose,data = train,family = binomial)
+summary(model2)
+
+predictions = predict(model2, type="response", newdata=test)
+predDF=data.frame(test,predictions)
+predDF$HeartPrediction = predDF$predictions>0.5
+
+#confusion matrix
+
+cf = table(predDF$TenYearCHD,predDF$HeartPrediction)
+
+cf = as.data.frame.matrix(table(predDF$TenYearCHD,predDF$HeartPrediction))
+
+
+accuracy = (643+9)/(643+9+11+109)
+truepositive = (643+9)/(643+9+11+109)
+truenegative = (9)/(643+9+11+109)
+Falsepositive = (11)/(643+9+11+109) # also called type1 error
+Falsenegative = (109)/(643+9+11+109) # also called type2 error
+
